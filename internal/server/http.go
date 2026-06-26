@@ -3,11 +3,11 @@ package server
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
-	// "github.com/labstack/echo/v5/middleware"
+	"github.com/labstack/echo/v5/middleware"
 	"gorm.io/gorm"
 	"net/http"
 	"spotsync/internal/config"
-	// "spotsync/internal/domain/users"
+	"spotsync/internal/domain/user"
 )
 
 type CustomValidator struct {
@@ -19,7 +19,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func Start(db *gorm.DB, cfg *config.Config) {
-	db.AutoMigrate()
+	db.AutoMigrate(&user.User{})
 
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: validator.New()}
@@ -29,5 +29,9 @@ func Start(db *gorm.DB, cfg *config.Config) {
 			"message": "Server is running",
 		})
 	})
+
+	e.Use(middleware.RequestLogger())
+	user.RegisterRoutes(e, db, cfg)
 	e.Start(":" + cfg.PORT)
+
 }
