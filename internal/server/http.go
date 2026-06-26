@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"spotsync/internal/config"
 	"spotsync/internal/domain/user"
+	"spotsync/internal/domain/zone"
 )
 
 type CustomValidator struct {
@@ -19,7 +20,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func Start(db *gorm.DB, cfg *config.Config) {
-	db.AutoMigrate(&user.User{})
+	db.AutoMigrate(&user.User{}, &zone.Zone{})
 
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: validator.New()}
@@ -32,6 +33,7 @@ func Start(db *gorm.DB, cfg *config.Config) {
 
 	e.Use(middleware.RequestLogger())
 	user.RegisterRoutes(e, db, cfg)
+	zone.RegisterRoutes(e, db, cfg)
 	e.Start(":" + cfg.PORT)
 
 }
