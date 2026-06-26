@@ -10,8 +10,8 @@ var ErrZoneNotFound = errors.New("zone not found")
 
 type Repository interface {
 	Create(mango *Zone) error
-	// GetAll() ([]*Zone, error)
-	// GetByID(mangoId uint) (*Zone, error)
+	GetAll() ([]*Zone, error)
+	GetByID(mangoId uint) (*Zone, error)
 	// Update(mango *Zone) error
 }
 
@@ -25,4 +25,23 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) Create(zone *Zone) error {
 	return r.db.Create(zone).Error
+}
+
+func (r *repository) GetAll() ([]*Zone, error) {
+	var zone []*Zone
+	if err := r.db.Find(&zone).Error; err != nil {
+		return nil, err
+	}
+	return zone, nil
+}
+func (r *repository) GetByID(zoneId uint) (*Zone, error) {
+	var zone Zone
+	err := r.db.First(&zone, zoneId).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrZoneNotFound
+		}
+		return nil, err
+	}
+	return &zone, nil
 }

@@ -15,3 +15,9 @@ type APIResponse struct {
 	Message string       `json:"message"`
 	Data    ZoneResponse `json:"data"`
 }
+
+type ListAPIResponse struct {
+	Success bool           `json:"success"`
+	Message string         `json:"message"`
+	Data    []ZoneResponse `json:"data"`
+}

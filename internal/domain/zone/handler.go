@@ -2,11 +2,11 @@ package zone
 
 import (
 	"errors"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"spotsync/internal/domain/zone/dto"
 	"spotsync/internal/httpresponse"
-
-	"github.com/labstack/echo/v5"
+	"strconv"
 )
 
 type handler struct {
@@ -50,6 +50,39 @@ func (h *handler) CreateZone(c *echo.Context) error {
 	return c.JSON(http.StatusCreated, dto.APIResponse{
 		Success: true,
 		Message: "Parking zone created successfully",
+		Data:    *response,
+	})
+}
+func (h *handler) GetZone(c *echo.Context) error {
+	zone, err := h.service.GetZone()
+	if err != nil {
+		return zoneErrorResponse(c, err)
+	}
+	return c.JSON(http.StatusOK, dto.ListAPIResponse{
+		Success: true,
+		Message: "Parking zones retrieved successfully",
+		Data:    zone,
+	})
+}
+
+func (h *handler) GetZoneByID(c *echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, httpresponse.Error{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid Zone id",
+			Details: err.Error(),
+		})
+	}
+
+	response, err := h.service.GetZoneByID(uint(id))
+	if err != nil {
+		return zoneErrorResponse(c, err)
+	}
+
+	return c.JSON(http.StatusOK, dto.APIResponse{
+		Success: true,
+		Message: "Parking zones retrieved successfully",
 		Data:    *response,
 	})
 }

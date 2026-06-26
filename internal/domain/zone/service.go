@@ -35,3 +35,24 @@ func (s *service) CreateZone(req dto.CreateZoneRequest) (*dto.ZoneResponse, erro
 		CreatedAt:     zone.CreatedAt.Format(time.RFC3339),
 	}, nil
 }
+
+func (s *service) GetZone() ([]dto.ZoneResponse, error) {
+	zone, err := s.repo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []dto.ZoneResponse
+	for _, m := range zone {
+		responses = append(responses, *m.ToResponse())
+	}
+	return responses, nil
+}
+
+func (s *service) GetZoneByID(zoneId uint) (*dto.ZoneResponse, error) {
+	zone, err := s.repo.GetByID(zoneId)
+	if err != nil {
+		return nil, err
+	}
+	return zone.ToResponse(), nil
+}

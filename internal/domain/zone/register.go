@@ -16,12 +16,14 @@ func RegisterRoutes(e *echo.Echo, db *gorm.DB, cfg *config.Config) {
 
 	jwtService := auth.NewJWTService(cfg.JwtSecret)
 
-	api := e.Group("/api/v1")
+	api := e.Group("/api/v1/zones")
 
 	api.POST(
-		"/zones",
+		"/",
 		zoneHandler.CreateZone,
 		middlewares.AuthMiddleware(jwtService),
 		middlewares.AdminMiddleware(),
 	)
+	api.GET("/", zoneHandler.GetZone)
+	api.GET("/:id", zoneHandler.GetZoneByID)
 }
