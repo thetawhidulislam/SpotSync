@@ -37,22 +37,51 @@ func (s *service) CreateZone(req dto.CreateZoneRequest) (*dto.ZoneResponse, erro
 }
 
 func (s *service) GetZone() ([]dto.ZoneResponse, error) {
-	zone, err := s.repo.GetAll()
+
+	zones, err := s.repo.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var responses []dto.ZoneResponse
-	for _, m := range zone {
-		responses = append(responses, *m.ToResponse())
-	}
-	return responses, nil
-}
+	var response []dto.ZoneResponse
 
+	for _, z := range zones {
+
+		activeReservations := 0
+
+		response = append(response, dto.ZoneResponse{
+			ID:             z.ID,
+			Name:           z.Name,
+			Type:           z.Type,
+			TotalCapacity:  z.TotalCapacity,
+			AvailableSpots: z.TotalCapacity - activeReservations,
+			PricePerHour:   z.PricePerHour,
+			CreatedAt:      z.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:      z.UpdatedAt.Format(time.RFC3339),
+		})
+	}
+
+	return response, nil
+}
 func (s *service) GetZoneByID(zoneId uint) (*dto.ZoneResponse, error) {
+
 	zone, err := s.repo.GetByID(zoneId)
 	if err != nil {
 		return nil, err
 	}
-	return zone.ToResponse(), nil
+
+	activeReservations := 0
+
+	response := &dto.ZoneResponse{
+		ID:             zone.ID,
+		Name:           zone.Name,
+		Type:           zone.Type,
+		TotalCapacity:  zone.TotalCapacity,
+		AvailableSpots: zone.TotalCapacity - activeReservations,
+		PricePerHour:   zone.PricePerHour,
+		CreatedAt:      zone.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      zone.UpdatedAt.Format(time.RFC3339),
+	}
+
+	return response, nil
 }

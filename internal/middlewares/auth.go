@@ -3,6 +3,7 @@ package middlewares
 import (
 	"net/http"
 	"spotsync/internal/auth"
+	"spotsync/internal/httpresponse"
 	"strings"
 
 	"github.com/labstack/echo/v5"
@@ -13,29 +14,37 @@ func AuthMiddleware(jwtService auth.JWTService) echo.MiddlewareFunc {
 		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "missing authorization header",
+				return c.JSON(http.StatusUnauthorized, httpresponse.Error{
+					Code:    http.StatusUnauthorized,
+					Message: "Unauthorized",
+					Details: "missing authorization header",
 				})
 			}
 
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid authorization header format",
+				return c.JSON(http.StatusUnauthorized, httpresponse.Error{
+					Code:    http.StatusUnauthorized,
+					Message: "Unauthorized",
+					Details: "invalid authorization header format",
 				})
 			}
 
 			claims, err := jwtService.ValidateToken(parts[1])
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid or expired token",
+				return c.JSON(http.StatusUnauthorized, httpresponse.Error{
+					Code:    http.StatusUnauthorized,
+					Message: "Unauthorized",
+					Details: "invalid or expired token",
 				})
 			}
 
 			// reject refresh tokens from being used as access tokens
 			if claims.TokenType != auth.TokenTypeAccess {
-				return c.JSON(http.StatusUnauthorized, map[string]string{
-					"error": "invalid token type",
+				return c.JSON(http.StatusUnauthorized, httpresponse.Error{
+					Code:    http.StatusUnauthorized,
+					Message: "Unauthorized",
+					Details: "invalid token type",
 				})
 			}
 
@@ -55,8 +64,10 @@ func AdminMiddleware() echo.MiddlewareFunc {
 
 			role, ok := c.Get("role").(string)
 			if !ok || role != "admin" {
-				return c.JSON(http.StatusForbidden, map[string]string{
-					"error": "admin access required",
+				return c.JSON(http.StatusForbidden, httpresponse.Error{
+					Code:    http.StatusForbidden,
+					Message: "Forbidden",
+					Details: "admin access required",
 				})
 			}
 
