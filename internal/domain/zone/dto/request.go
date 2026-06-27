@@ -6,3 +6,9 @@ type CreateZoneRequest struct {
 	TotalCapacity int     `json:"total_capacity" validate:"required,min=1"`
 	PricePerHour  float64 `json:"price_per_hour" validate:"required,gt=0"`
 }
+type UpdateZoneRequest struct {
+	Name          string  `json:"name"`
+	Type          string  `json:"type"`
+	TotalCapacity int     `json:"total_capacity"`
+	PricePerHour  float64 `json:"price_per_hour"`
+}

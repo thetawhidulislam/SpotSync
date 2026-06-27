@@ -13,7 +13,8 @@ type Repository interface {
 	GetAll() ([]*Zone, error)
 	GetByID(mangoId uint) (*Zone, error)
 	CountActiveReservations(zoneID uint) (int64, error)
-	// Update(mango *Zone) error
+	Update(zone *Zone) error
+Delete(id uint) error
 }
 
 type repository struct {
@@ -47,6 +48,13 @@ func (r *repository) GetByID(zoneId uint) (*Zone, error) {
 	return &zone, nil
 }
 
+func (r *repository) Update(zone *Zone) error {
+	return r.db.Save(zone).Error
+}
+
+func (r *repository) Delete(id uint) error {
+	return r.db.Delete(&Zone{}, id).Error
+}
 func (r *repository) CountActiveReservations(zoneID uint) (int64, error) {
 	var count int64
 

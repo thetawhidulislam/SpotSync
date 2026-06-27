@@ -94,3 +94,31 @@ func (s *service) GetZoneByID(zoneId uint) (*dto.ZoneResponse, error) {
 
 	return response, nil
 }
+func (s *service) UpdateZone(id uint, req dto.UpdateZoneRequest) (*dto.ZoneResponse, error) {
+
+	zone, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	zone.Name = req.Name
+	zone.Type = req.Type
+	zone.TotalCapacity = req.TotalCapacity
+	zone.PricePerHour = req.PricePerHour
+
+	if err := s.repo.Update(zone); err != nil {
+		return nil, err
+	}
+
+	return zone.ToResponse(), nil
+}
+
+func (s *service) DeleteZone(id uint) error {
+
+	_, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.Delete(id)
+}

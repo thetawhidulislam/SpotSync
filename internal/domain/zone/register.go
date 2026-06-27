@@ -26,4 +26,17 @@ func RegisterRoutes(e *echo.Echo, db *gorm.DB, cfg *config.Config) {
 	)
 	api.GET("/", zoneHandler.GetZone)
 	api.GET("/:id", zoneHandler.GetZoneByID)
+	api.PATCH(
+		"/:id",
+		zoneHandler.UpdateZone,
+		middlewares.AuthMiddleware(jwtService),
+		middlewares.AdminMiddleware(),
+	)
+
+	api.DELETE(
+		"/:id",
+		zoneHandler.DeleteZone,
+		middlewares.AuthMiddleware(jwtService),
+		middlewares.AdminMiddleware(),
+	)
 }
