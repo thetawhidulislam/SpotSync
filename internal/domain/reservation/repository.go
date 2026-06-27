@@ -24,9 +24,9 @@ const (
 
 type Repository interface {
 	Create(order *Reservation) error
-	// GetByID(orderId uint) (*Reservation, error)
+	GetByID(id uint) (*Reservation, error)
+	Update(reservation *Reservation) error
 	GetByUserID(userId uint) ([]*Reservation, error)
-	// Update(order *Reservation) error
 	CreateWithCapacityUpdate(userId, ZoneID uint, LicensePlate string) (*Reservation, error)
 	CountActiveReservations(zoneID uint) (int64, error)
 }
@@ -41,6 +41,54 @@ func NewRepository(db *gorm.DB) Repository {
 
 func (r *repository) Create(order *Reservation) error {
 	return r.db.Create(order).Error
+}
+
+func (r *repository) GetByUserID(userId uint) ([]*Reservation, error) {
+
+	var reservations []*Reservation
+
+	err := r.db.
+		Preload("Zone").
+		Where("user_id = ?", userId).
+		Find(&reservations).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return reservations, nil
+}
+
+func (r *repository) GetByID(id uint) (*Reservation, error) {
+
+	var reservation Reservation
+
+	err := r.db.First(&reservation, id).Error
+	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrOrderNotFound
+		}
+
+		return nil, err
+	}
+
+	return &reservation, nil
+}
+
+func (r *repository) Update(reservation *Reservation) error {
+	return r.db.Save(reservation).Error
+}
+
+func (r *repository) CountActiveReservations(zoneID uint) (int64, error) {
+	var count int64
+
+	err := r.db.
+		Model(&Reservation{}).
+		Where("zone_id = ? AND status = ?", zoneID, ReservationActive).
+		Count(&count).Error
+
+	return count, err
 }
 
 func (r *repository) CreateWithCapacityUpdate(
@@ -101,35 +149,4 @@ func (r *repository) CreateWithCapacityUpdate(
 	}
 
 	return &reservation, nil
-}
-
-func (r *repository) GetByUserID(userId uint) ([]*Reservation, error) {
-
-	var reservations []*Reservation
-
-	err := r.db.
-		Preload("Zone").
-		Where("user_id = ?", userId).
-		Find(&reservations).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return reservations, nil
-}
-
-func (r *repository) Update(order *Reservation) error {
-	return r.db.Save(order).Error
-}
-
-func (r *repository) CountActiveReservations(zoneID uint) (int64, error) {
-	var count int64
-
-	err := r.db.
-		Model(&Reservation{}).
-		Where("zone_id = ? AND status = ?", zoneID, ReservationActive).
-		Count(&count).Error
-
-	return count, err
 }

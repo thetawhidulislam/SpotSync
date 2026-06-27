@@ -63,3 +63,23 @@ func (s *service) GetMyReservations(userId uint) ([]*dto.ReservationResponse, er
 
 	return responses, nil
 }
+
+func (s *service) CancelReservation(userId uint, reservationId uint) error {
+
+	reservation, err := s.reservationRepo.GetByID(reservationId)
+	if err != nil {
+		return err
+	}
+
+	if reservation.UserID != userId {
+		return ErrForbiddenOrderAccess
+	}
+
+	if reservation.Status == ReservationCancelled {
+		return ErrOrderAlreadyCancelled
+	}
+
+	reservation.Status = ReservationCancelled
+
+	return s.reservationRepo.Update(reservation)
+}

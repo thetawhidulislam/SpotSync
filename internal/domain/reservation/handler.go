@@ -2,12 +2,12 @@ package reservation
 
 import (
 	"errors"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"spotsync/internal/domain/reservation/dto"
 	"spotsync/internal/domain/zone"
 	"spotsync/internal/httpresponse"
-
-	"github.com/labstack/echo/v5"
+	"strconv"
 )
 
 type handler struct {
@@ -115,5 +115,33 @@ func (h *handler) MyReservations(c *echo.Context) error {
 		Success: true,
 		Message: "My reservations retrieved successfully",
 		Data:    response,
+	})
+}
+func (h *handler) CancelReservation(c *echo.Context) error {
+
+	userId, ok := getCurrentUserID(c)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, httpresponse.Error{
+			Code:    http.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+	}
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, httpresponse.Error{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid reservation id",
+		})
+	}
+
+	err = h.service.CancelReservation(userId, uint(id))
+	if err != nil {
+		return orderErrorResponse(c, err)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Reservation cancelled successfully",
 	})
 }
