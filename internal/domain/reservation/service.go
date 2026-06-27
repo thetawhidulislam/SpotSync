@@ -25,6 +25,27 @@ func (r *Reservation) ToResponse() *dto.ReservationResponse {
 		CreatedAt: r.CreatedAt.Format(time.RFC3339),
 	}
 }
+func (r *Reservation) ToAdminResponse() *dto.AdminReservationResponse {
+	return &dto.AdminReservationResponse{
+		ID:           r.ID,
+		LicensePlate: r.LicensePlate,
+		Status:       r.Status,
+
+		User: dto.UserInfo{
+			ID:    r.User.ID,
+			Name:  r.User.Name,
+			Email: r.User.Email,
+		},
+
+		Zone: dto.ZoneInfo{
+			ID:   r.Zone.ID,
+			Name: r.Zone.Name,
+			Type: r.Zone.Type,
+		},
+
+		CreatedAt: r.CreatedAt.Format(time.RFC3339),
+	}
+}
 func NewService(reservationRepo Repository, zoneRepo zone.Repository) *service {
 	return &service{
 		reservationRepo: reservationRepo,
@@ -82,4 +103,19 @@ func (s *service) CancelReservation(userId uint, reservationId uint) error {
 	reservation.Status = ReservationCancelled
 
 	return s.reservationRepo.Update(reservation)
+}
+func (s *service) GetAllReservations() ([]*dto.AdminReservationResponse, error) {
+
+	reservations, err := s.reservationRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]*dto.AdminReservationResponse, len(reservations))
+
+	for i, r := range reservations {
+		responses[i] = r.ToAdminResponse()
+	}
+
+	return responses, nil
 }

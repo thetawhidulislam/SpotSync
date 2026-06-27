@@ -29,6 +29,7 @@ type Repository interface {
 	GetByUserID(userId uint) ([]*Reservation, error)
 	CreateWithCapacityUpdate(userId, ZoneID uint, LicensePlate string) (*Reservation, error)
 	CountActiveReservations(zoneID uint) (int64, error)
+	GetAll() ([]*Reservation, error)
 }
 
 type repository struct {
@@ -149,4 +150,19 @@ func (r *repository) CreateWithCapacityUpdate(
 	}
 
 	return &reservation, nil
+}
+func (r *repository) GetAll() ([]*Reservation, error) {
+
+	var reservations []*Reservation
+
+	err := r.db.
+		Preload("User").
+		Preload("Zone").
+		Find(&reservations).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return reservations, nil
 }

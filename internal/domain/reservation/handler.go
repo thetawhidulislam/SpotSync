@@ -145,3 +145,16 @@ func (h *handler) CancelReservation(c *echo.Context) error {
 		"message": "Reservation cancelled successfully",
 	})
 }
+func (h *handler) GetAllReservations(c *echo.Context) error {
+
+	response, err := h.service.GetAllReservations()
+	if err != nil {
+		return orderErrorResponse(c, err)
+	}
+
+	return c.JSON(http.StatusOK, dto.AdminListAPIResponse{
+		Success: true,
+		Message: "Reservations retrieved successfully",
+		Data:    response,
+	})
+}
