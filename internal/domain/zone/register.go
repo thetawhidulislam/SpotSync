@@ -19,12 +19,12 @@ func RegisterRoutes(e *echo.Echo, db *gorm.DB, cfg *config.Config) {
 	api := e.Group("/api/v1/zones")
 
 	api.POST(
-		"/",
+		"",
 		zoneHandler.CreateZone,
 		middlewares.AuthMiddleware(jwtService),
 		middlewares.AdminMiddleware(),
 	)
-	api.GET("/", zoneHandler.GetZone)
+	api.GET("", zoneHandler.GetZone)
 	api.GET("/:id", zoneHandler.GetZoneByID)
 	api.PATCH(
 		"/:id",
