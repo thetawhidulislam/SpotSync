@@ -12,6 +12,7 @@ type Repository interface {
 	Create(mango *Zone) error
 	GetAll() ([]*Zone, error)
 	GetByID(mangoId uint) (*Zone, error)
+	CountActiveReservations(zoneID uint) (int64, error)
 	// Update(mango *Zone) error
 }
 
@@ -44,4 +45,15 @@ func (r *repository) GetByID(zoneId uint) (*Zone, error) {
 		return nil, err
 	}
 	return &zone, nil
+}
+
+func (r *repository) CountActiveReservations(zoneID uint) (int64, error) {
+	var count int64
+
+	err := r.db.
+		Table("reservations").
+		Where("zone_id = ? AND status = ?", zoneID, "active").
+		Count(&count).Error
+
+	return count, err
 }

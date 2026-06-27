@@ -9,8 +9,12 @@ type service struct {
 	repo Repository
 }
 
-func NewService(repo Repository) *service {
-	return &service{repo: repo}
+func NewService(
+	repo Repository,
+) *service {
+	return &service{
+		repo: repo,
+	}
 }
 
 func (s *service) CreateZone(req dto.CreateZoneRequest) (*dto.ZoneResponse, error) {
@@ -47,14 +51,17 @@ func (s *service) GetZone() ([]dto.ZoneResponse, error) {
 
 	for _, z := range zones {
 
-		activeReservations := 0
+		activeReservations, err := s.repo.CountActiveReservations(z.ID)
+		if err != nil {
+			return nil, err
+		}
 
 		response = append(response, dto.ZoneResponse{
 			ID:             z.ID,
 			Name:           z.Name,
 			Type:           z.Type,
 			TotalCapacity:  z.TotalCapacity,
-			AvailableSpots: z.TotalCapacity - activeReservations,
+			AvailableSpots: z.TotalCapacity - int(activeReservations),
 			PricePerHour:   z.PricePerHour,
 			CreatedAt:      z.CreatedAt.Format(time.RFC3339),
 			UpdatedAt:      z.UpdatedAt.Format(time.RFC3339),
@@ -70,14 +77,16 @@ func (s *service) GetZoneByID(zoneId uint) (*dto.ZoneResponse, error) {
 		return nil, err
 	}
 
-	activeReservations := 0
-
+	activeReservations, err := s.repo.CountActiveReservations(zone.ID)
+	if err != nil {
+		return nil, err
+	}
 	response := &dto.ZoneResponse{
 		ID:             zone.ID,
 		Name:           zone.Name,
 		Type:           zone.Type,
 		TotalCapacity:  zone.TotalCapacity,
-		AvailableSpots: zone.TotalCapacity - activeReservations,
+		AvailableSpots: zone.TotalCapacity - int(activeReservations),
 		PricePerHour:   zone.PricePerHour,
 		CreatedAt:      zone.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:      zone.UpdatedAt.Format(time.RFC3339),
